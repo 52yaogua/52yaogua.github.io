@@ -136,7 +136,7 @@ const groupedAdvice = computed(() => {
     advice: group.options.map((opt) => ({
       key: opt.key,
       label: opt.label,
-      text: currentHexagram.value.advice?.[opt.key as AdviceTopic] ?? '',
+      text: currentHexagram.value && currentHexagram.value.advice ? currentHexagram.value.advice[opt.key as AdviceTopic] ?? '' : '',
     })),
   }))
 })

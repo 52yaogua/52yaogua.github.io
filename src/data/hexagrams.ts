@@ -741,7 +741,7 @@ const hexagramSeeds: HexagramSeed[] = [
   },
 ]
 
-type Fragment = (h: HexagramSeed) => string
+
 
 const adviceTopics: AdviceTopic[] = [
   'love',
@@ -842,20 +842,23 @@ const actions = [
 
 const render = (tpl: string, seed: HexagramSeed): string =>
   tpl
-    .replace('{k1}', seed.keywords[0] ?? '')
-    .replace('{k2}', seed.keywords[1] ?? seed.keywords[0] ?? '')
-    .replace('{classic}', seed.classic)
-    .replace('{imagery}', seed.imagery)
-    .replace('{practice}', seed.practice)
+    .replace('{k1}', seed.keywords[0] || '')
+    .replace('{k2}', (seed.keywords[1] || seed.keywords[0]) || '')
+    .replace('{classic}', seed.classic || '')
+    .replace('{imagery}', seed.imagery || '')
+    .replace('{practice}', seed.practice || '')
 
 const composeAdvice = (seed: HexagramSeed, topic: AdviceTopic): string => {
   const e = elementNotes[seed.element]
   const o = openers[(seed.id + topic.length) % openers.length]
   const p = pivots[(seed.id * 3 + topic.length) % pivots.length]
   const a = actions[(seed.id * 5 + topic.length) % actions.length]
-  const cleanPractice = seed.practice.replace(/[。！？]/g, '')
-  const body = [render(p, seed), render(a, seed)].join('。')
-  return `${seed.nameCn}·${topicLabels[topic]} ｜ ${e.label}：${o}。${body}。象曰「${seed.imagery}」，以「${cleanPractice}」践行。`
+  const cleanPractice = (seed.practice || '').replace(/[。！？]/g, '')
+  const rp = typeof p === 'string' ? render(p, seed) : ''
+  const ra = typeof a === 'string' ? render(a, seed) : ''
+  const body = [rp, ra].filter(Boolean).join('。')
+  return `${seed.nameCn}·${topicLabels[topic]} ｜ ${e.label}：${o}。${body}。象曰「${seed.imagery || ''}」，以「${cleanPractice}」践行。`
+
 }
 
 const topicVariants: Record<AdviceTopic, string[]> = adviceTopics.reduce((acc, topic) => {
@@ -865,7 +868,7 @@ const topicVariants: Record<AdviceTopic, string[]> = adviceTopics.reduce((acc, t
 
 const buildAdvice = (seed: HexagramSeed): Record<AdviceTopic, string> => {
   return adviceTopics.reduce((acc, topic) => {
-    const text = topicVariants[topic][seed.id - 1]
+    const text = topicVariants[topic][seed.id - 1] || ''
     acc[topic] = text
     return acc
   }, {} as Record<AdviceTopic, string>)
