@@ -1,4 +1,24 @@
-export interface Hexagram {
+export type AdviceTopic =
+  | 'love'
+  | 'career'
+  | 'future'
+  | 'fortune'
+  | 'longevity'
+  | 'descendants'
+  | 'health'
+  | 'rdPc'
+  | 'rdMobile'
+  | 'frontend'
+  | 'backend'
+  | 'pm'
+  | 'ops'
+  | 'qa'
+  | 'bonus'
+  | 'sprint'
+  | 'promotion'
+  | 'stress'
+
+export interface HexagramSeed {
   id: number
   nameCn: string
   nameEn: string
@@ -10,7 +30,11 @@ export interface Hexagram {
   practice: string
 }
 
-export const hexagrams: Hexagram[] = [
+export interface Hexagram extends HexagramSeed {
+  advice: Record<AdviceTopic, string>
+}
+
+const hexagramSeeds: HexagramSeed[] = [
   {
     id: 1,
     nameCn: '乾',
@@ -716,3 +740,138 @@ export const hexagrams: Hexagram[] = [
     practice: '保持试运行心态，随时准备下一版。',
   },
 ]
+
+type Fragment = (h: HexagramSeed) => string
+
+const adviceTopics: AdviceTopic[] = [
+  'love',
+  'career',
+  'future',
+  'fortune',
+  'longevity',
+  'descendants',
+  'health',
+  'rdPc',
+  'rdMobile',
+  'frontend',
+  'backend',
+  'pm',
+  'ops',
+  'qa',
+  'bonus',
+  'sprint',
+  'promotion',
+  'stress',
+]
+const topicLabels: Record<AdviceTopic, string> = {
+  love: '姻缘',
+  career: '事业',
+  future: '前程',
+  fortune: '吉凶',
+  longevity: '寿命',
+  descendants: '子孙',
+  health: '健康',
+  rdPc: '研发-PC客户端',
+  rdMobile: '研发-移动客户端',
+  frontend: '研发-前端',
+  backend: '研发-服务端',
+  pm: '产品',
+  ops: '运营',
+  qa: '测试',
+  bonus: '年终奖',
+  sprint: '周任务',
+  promotion: '晋升',
+  stress: '压力',
+}
+
+const elementNotes: Record<HexagramSeed['element'], { label: string; detail: string }> = {
+  木: { label: '木 · 生长', detail: '渐进滋养、曲线生长，给新芽空间与光照。' },
+  火: { label: '火 · 明德', detail: '照明、传播、激发热情，但需控温防过热。' },
+  土: { label: '土 · 承载', detail: '稳住供给与秩序，再承载变化与扩张。' },
+  金: { label: '金 · 肃正', detail: '立规矩、明边界，决断而克制，提纯效率。' },
+  水: { label: '水 · 智润', detail: '保持弹性与包容，渗透调和，遇阻则绕行。' },
+}
+
+const openers = [
+  '先定心，再定调',
+  '以终为始，收束分歧',
+  '守正出奇，少即是多',
+  '先稳盘，再放量',
+  '划清边界，聚焦要事',
+  '以慢为快，养势而动',
+  '先排雷，再蓄能',
+  '敢于止损，轻装前进',
+  '复盘当下，重塑节奏',
+  '以数据校正情绪',
+  '保持留白，给弹性',
+  '重视节奏感，避免过热',
+  '先做减法，再谈加速',
+]
+
+const pivots = [
+  '围绕核心关键词展开「{k1}/{k2}」双线策略',
+  '把「{classic}」当戒尺，遇噪音先校验价值观',
+  '用「{imagery}」作环境镜像，判断顺逆势',
+  '按「{practice}」拆解里程碑，验收每一拍',
+  '设置止损与缓冲，拒绝一次性豪赌',
+  '复用成熟模式，避免重复造轮子',
+  '公开沟通意图，减少误读与内耗',
+  '把风险列表化，逐项消减',
+  '拉长观测窗，观察反馈曲线',
+  '明确角色分工，封装责任边界',
+  '沉淀标准与手册，方便移交与扩展',
+  '利用盟友与社群，以柔胜刚',
+  '为关键节点预留彩排与演练',
+]
+
+const actions = [
+  '先小范围试运行，再按反馈扩展',
+  '设定节奏线，周复盘、月对齐、季度校准',
+  '强调可观测性：数据、口碑与交付一并跟踪',
+  '把情绪降噪，决策回到事实与指标',
+  '保留回滚方案，确保犯错成本可控',
+  '放大长板，补齐短板，形成清晰叙事',
+  '设计仪式与节庆，维护团队热度',
+  '以陪伴和迭代替代一次性对抗',
+  '分层管理：核心护城河与实验沙盒分离',
+  '标记依赖与阻塞，先拆墙再铺路',
+  '用故事化表达向上沟通，争取资源',
+  '设定停表条件，避免无期限消耗',
+  '留出冷静期，让系统自稳态后再推进',
+]
+
+const render = (tpl: string, seed: HexagramSeed): string =>
+  tpl
+    .replace('{k1}', seed.keywords[0] ?? '')
+    .replace('{k2}', seed.keywords[1] ?? seed.keywords[0] ?? '')
+    .replace('{classic}', seed.classic)
+    .replace('{imagery}', seed.imagery)
+    .replace('{practice}', seed.practice)
+
+const composeAdvice = (seed: HexagramSeed, topic: AdviceTopic): string => {
+  const e = elementNotes[seed.element]
+  const o = openers[(seed.id + topic.length) % openers.length]
+  const p = pivots[(seed.id * 3 + topic.length) % pivots.length]
+  const a = actions[(seed.id * 5 + topic.length) % actions.length]
+  const cleanPractice = seed.practice.replace(/[。！？]/g, '')
+  const body = [render(p, seed), render(a, seed)].join('。')
+  return `${seed.nameCn}·${topicLabels[topic]} ｜ ${e.label}：${o}。${body}。象曰「${seed.imagery}」，以「${cleanPractice}」践行。`
+}
+
+const topicVariants: Record<AdviceTopic, string[]> = adviceTopics.reduce((acc, topic) => {
+  acc[topic] = hexagramSeeds.map((seed) => composeAdvice(seed, topic))
+  return acc
+}, {} as Record<AdviceTopic, string[]>)
+
+const buildAdvice = (seed: HexagramSeed): Record<AdviceTopic, string> => {
+  return adviceTopics.reduce((acc, topic) => {
+    const text = topicVariants[topic][seed.id - 1]
+    acc[topic] = text
+    return acc
+  }, {} as Record<AdviceTopic, string>)
+}
+
+export const hexagrams: Hexagram[] = hexagramSeeds.map((seed) => ({
+  ...seed,
+  advice: buildAdvice(seed),
+}))

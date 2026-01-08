@@ -1,12 +1,54 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
-import type { Hexagram } from '../data/hexagrams'
+import type { AdviceTopic, Hexagram } from '../data/hexagrams'
 import { hexagrams } from '../data/hexagrams'
 
 const currentHexagram = ref<Hexagram | null>(null)
 const history = ref<Hexagram[]>([])
 const isCasting = ref(false)
 const lastCastAt = ref('')
+
+const adviceGroups = [
+  {
+    id: 'life',
+    label: '人生主题解挂',
+    description: '姻缘、事业、前程、吉凶、寿命、子孙、健康',
+    options: [
+      { key: 'love', label: '姻缘' },
+      { key: 'career', label: '事业' },
+      { key: 'future', label: '前程' },
+      { key: 'fortune', label: '吉凶' },
+      { key: 'longevity', label: '寿命' },
+      { key: 'descendants', label: '子孙' },
+      { key: 'health', label: '健康' },
+    ],
+  },
+  {
+    id: 'roles',
+    label: '互联网岗位解挂',
+    description: '研发、产品、运营、测试等团队角色',
+    options: [
+      { key: 'rdPc', label: '研发 · PC客户端' },
+      { key: 'rdMobile', label: '研发 · 移动客户端' },
+      { key: 'frontend', label: '研发 · 前端' },
+      { key: 'backend', label: '研发 · 服务端' },
+      { key: 'pm', label: '产品' },
+      { key: 'ops', label: '运营' },
+      { key: 'qa', label: '测试' },
+    ],
+  },
+  {
+    id: 'work',
+    label: '职场关切解挂',
+    description: '年终奖、周任务、晋升、压力等话题',
+    options: [
+      { key: 'bonus', label: '年终奖' },
+      { key: 'sprint', label: '周任务' },
+      { key: 'promotion', label: '下一年晋升' },
+      { key: 'stress', label: '工作压力' },
+    ],
+  },
+]
 
 const elementNotes: Record<Hexagram['element'], { label: string; detail: string }> = {
   木: {
@@ -87,6 +129,17 @@ const castHexagram = () => {
 }
 
 const lastKeywords = computed(() => currentHexagram.value?.keywords ?? ['专注', '沉淀', '觉察'])
+const groupedAdvice = computed(() => {
+  if (!currentHexagram.value) return []
+  return adviceGroups.map((group) => ({
+    ...group,
+    advice: group.options.map((opt) => ({
+      key: opt.key,
+      label: opt.label,
+      text: currentHexagram.value.advice?.[opt.key as AdviceTopic] ?? '',
+    })),
+  }))
+})
 </script>
 
 <template>
@@ -192,6 +245,45 @@ const lastKeywords = computed(() => currentHexagram.value?.keywords ?? ['专注'
         </article>
       </TransitionGroup>
     </div>
+
+    <section class="space-y-4">
+      <div class="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
+        <div>
+          <p class="font-sansBrand text-xs uppercase tracking-[0.4em] text-gold">Multi-Context Reading</p>
+          <h3 class="text-2xl font-serifBrand text-sand">专题解挂矩阵</h3>
+        </div>
+        <p class="text-xs text-white/60">覆盖情感、职场岗位与年度关切，随卦象同步调整策略。</p>
+      </div>
+
+      <div v-if="groupedAdvice.length" class="space-y-6">
+        <div
+          v-for="group in groupedAdvice"
+          :key="group.id"
+          class="rounded-3xl border border-white/10 bg-white/5 p-5 shadow-lg shadow-black/40 backdrop-blur"
+        >
+          <div class="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
+            <div>
+              <p class="font-sansBrand text-xs uppercase tracking-[0.35em] text-gold">{{ group.label }}</p>
+              <p class="text-sm text-white/70">{{ group.description }}</p>
+            </div>
+            <p class="text-xs text-white/50">基于当前卦象 {{ currentHexagram?.nameCn }} · {{ currentHexagram?.nameEn }}</p>
+          </div>
+
+          <div class="mt-4 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+            <article
+              v-for="card in group.advice"
+              :key="card.key"
+              class="rounded-2xl border border-white/10 bg-gradient-to-br from-obsidian/70 via-ink/80 to-obsidian/70 p-4 text-sm text-white/85"
+            >
+              <p class="font-sansBrand text-[0.7rem] uppercase tracking-[0.4em] text-amber-200/80">{{ card.label }}</p>
+              <p class="mt-2 leading-relaxed">{{ card.text }}</p>
+            </article>
+          </div>
+        </div>
+      </div>
+
+      <p v-else class="text-sm text-white/60">摇卦后将根据卦象生成对应领域的建议。</p>
+    </section>
   </section>
 </template>
 
